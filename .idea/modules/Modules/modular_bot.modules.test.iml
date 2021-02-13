@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.system.module.type="sourceSet" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_14">
+    <output-test url="file://$MODULE_DIR$/../../../modules/build/classes/java/test" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../../../modules/src/test">
+      <sourceFolder url="file://$MODULE_DIR$/../../../modules/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../modules/src/test/resources" type="java-test-resource" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="TestModuleProperties" production-module="modular_bot.modules.main" />
+</module>

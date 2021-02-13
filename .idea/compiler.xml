@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel target="14">
+      <module name="Discord_modular_bot.FirstModule.main" target="1.8" />
+      <module name="Discord_modular_bot.FirstModule.test" target="1.8" />
+      <module name="Discord_modular_bot.main" target="1.8" />
+      <module name="Discord_modular_bot.ModuleDebugger.main" target="1.8" />
+      <module name="Discord_modular_bot.ModuleDebugger.test" target="1.8" />
+      <module name="Discord_modular_bot.New_module.main" target="1.8" />
+      <module name="Discord_modular_bot.New_module.test" target="1.8" />
+      <module name="Discord_modular_bot.test" target="1.8" />
+      <module name="Discord_modular_bot.test123.main" target="1.8" />
+      <module name="Discord_modular_bot.test123.test" target="1.8" />
+      <module name="modular_bot.FirstModule.main" target="1.8" />
+      <module name="modular_bot.FirstModule.test" target="1.8" />
+      <module name="modular_bot.ModuleDebugger.main" target="1.8" />
+      <module name="modular_bot.ModuleDebugger.test" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

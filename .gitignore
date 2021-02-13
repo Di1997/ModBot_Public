@@ -1,0 +1,34 @@
+# Project exclude paths
+/.gradle/
+/build/
+/build/classes/java/main/
+/module_debugger/build/
+/first_module/build/
+/modular_bot/build/classes/java/databases/core/guilds/000003.log
+/modular_bot/build/classes/java/core/guilds/000005.sst
+/modular_bot/build/classes/java/channel_toggle_module/default/000013.log
+/modular_bot/build/classes/java/dm_module/default/000015.log
+/modular_bot/build/libs/databases/core/guilds/000017.log
+/modular_bot/build/classes/java/core/guilds/000018.sst
+/modular_bot/build/libs/core/guilds/000019.log
+/modular_bot/build/classes/java/core/guilds/000027.sst
+/modular_bot/build/classes/java/first_module/default/000027.sst
+/modular_bot/build/classes/java/first_module/default/000040.sst
+/modular_bot/build/classes/java/first_module/default/000043.sst
+/modular_bot/build/classes/java/core/guilds/000046.log
+/modular_bot/build/classes/java/first_module/default/000062.log
+/modular_bot/build/classes/java/first_module/counter/000152.sst
+/modular_bot/build/classes/java/first_module/counter/000176.sst
+/modular_bot/build/classes/java/first_module/counter/000189.sst
+/modular_bot/build/classes/java/first_module/counter/000192.sst
+/modular_bot/build/classes/java/first_module/counter/000211.log
+/modular_bot/build/
+/Modules/modules.channel_toggle_module/build/
+/Modules/modules.dice_module/build/
+/Modules/modules.discord_commands/build/
+/Modules/modules.dm_module/build/
+/Modules/modules.first_module/build/
+/Modules/modules.idk/build/
+/Modules/modules.reddit_monitoring/build/
+/ModuleDatabases/databases/
+/Jar files/

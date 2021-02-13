@@ -1,0 +1,116 @@
+import org.gradle.configuration.BuildOperationScriptPlugin
+
+plugins {
+    id'java'
+    id'application'
+    id'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'application'
+    apply plugin: 'com.github.johnrengelman.shadow'
+    apply plugin: 'maven'
+
+    version '1.0'
+
+    group 'di'
+
+    project.sourceCompatibility = project.targetCompatibility = 14.0
+
+    repositories {
+        jcenter()
+    }
+
+    jar {
+        archiveVersion = ''
+    }
+	
+	shadowJar {
+		archiveVersion = ''
+	}
+
+    test {
+        exclude '**/*'
+    }
+
+    dependencies {
+        implementation "net.dv8tion:JDA:4.2.0_222"
+        implementation "org.fusesource.leveldbjni:leveldbjni-all:1.8"
+        implementation 'com.google.code.gson:gson:2.8.6'
+        implementation 'org.slf4j:slf4j-api:1.7.30'
+        implementation 'org.slf4j:slf4j-simple:1.7.30'
+        implementation 'net.dean.jraw:JRAW:1.1.0'
+
+        Project mainBot = project(":modular_bot")
+        Project debugBot = project(":module_debugger")
+
+        if(project != mainBot && project != rootProject) {
+            implementation mainBot
+        }
+
+        if(project == debugBot) {
+            for(Project current_project : rootProject.subprojects) {
+                if(current_project != project(":module_debugger") && current_project != mainBot) {
+                    implementation current_project
+                }
+            }
+        }
+    }
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+class MoveFiles extends DefaultTask {
+    @TaskAction
+    def execute() {
+        String path = 'build\\libs\\'
+        project.delete(project.files("Jar files"))
+
+        for(Project _project : project.subprojects) {
+            if(_project == project.project(":modular_bot")) {
+                String modulePath = _project.file(path + 'modular_bot-all.jar')
+                project.copy {
+                    from modulePath
+                    into project.file('Jar files')
+                    rename '(.+)-all(.+)', '$1$2'
+                }
+            }
+            else if (_project != project.project(":module_debugger")) {
+                String modulePath = _project.file(path + _project.name + '.jar')
+                project.copy {
+                    from modulePath
+                    into project.file('Jar files')
+                }
+            }
+        }
+    }
+}
+
+task moveBotFiles(type: MoveFiles) {
+    group("build")
+}
+
+task buildBot() {
+    group("build")
+
+    Task currentTask = buildBot;
+    for(Project _project : project.subprojects) {
+        if(_project == project.project(":modular_bot")) {
+            Task _task = _project.getTasksByName("shadowJar", false).first()
+            buildBot.dependsOn(_task)
+            _task.shouldRunAfter(currentTask)
+            currentTask = _task
+        }
+        else if (_project != project.project(":module_debugger")) {
+            Task _task = _project.getTasksByName("build", false).first()
+            buildBot.dependsOn(_task)
+            _task.shouldRunAfter(currentTask)
+            currentTask = _task
+        }
+    }
+
+    Task movingTask = project.getTasksByName("moveBotFiles", false).first()
+    buildBot.dependsOn(movingTask)
+    movingTask.shouldRunAfter(currentTask)
+}

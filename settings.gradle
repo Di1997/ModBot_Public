@@ -1,0 +1,9 @@
+rootProject.name = 'ModularBot'
+include 'modular_bot'
+include 'module_debugger'
+file('Modules').eachDir { dir ->
+    include dir.name
+    project(":${dir.name}").projectDir = dir
+}
+include 'modules.leveldbreader'
+

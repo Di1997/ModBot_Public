@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="GRADLE" />
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="14.0.2" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/Modules/modules.channel_toggle_module" />
+            <option value="$PROJECT_DIR$/Modules/modules.dice_module" />
+            <option value="$PROJECT_DIR$/Modules/modules.discord_commands" />
+            <option value="$PROJECT_DIR$/Modules/modules.dm_module" />
+            <option value="$PROJECT_DIR$/Modules/modules.first_module" />
+            <option value="$PROJECT_DIR$/Modules/modules.idk" />
+            <option value="$PROJECT_DIR$/Modules/modules.leveldbreader" />
+            <option value="$PROJECT_DIR$/Modules/modules.reddit_monitoring" />
+            <option value="$PROJECT_DIR$/modular_bot" />
+            <option value="$PROJECT_DIR$/module_debugger" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>
