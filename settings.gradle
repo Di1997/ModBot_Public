@@ -5,5 +5,3 @@ file('Modules').eachDir { dir ->
     include dir.name
     project(":${dir.name}").projectDir = dir
 }
-include 'modules.leveldbreader'
-
