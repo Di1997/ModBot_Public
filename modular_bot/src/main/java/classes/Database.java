@@ -65,7 +65,7 @@ public class Database implements AutoCloseable {
         return new String(data);
     }
 
-    public void release() throws IOException {
+    public void  release() throws IOException {
         databaseFile.close();
     }
 
@@ -73,4 +73,6 @@ public class Database implements AutoCloseable {
     public void close() throws Exception {
         databaseFile.close();
     }
+
+    public static class InvalidDatabaseException extends Exception {}
 }

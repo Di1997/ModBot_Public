@@ -18,6 +18,12 @@ public class Tools {
         return gson.toJson(obj);
     }
 
+    @CheckForNull
+    public static <T> T convertToClass(String str, TypeToken<T> type) {
+        Gson gson = new GsonBuilder().create();
+        return gson.fromJson(str, type.getType());
+    }
+
     public static void SendMessage(GuildMessageReceivedEvent event, String message, String title) {
         if(message.length() + title.length() < 6000 && message.length() < 2000) {
             EmbedBuilder builder = new EmbedBuilder()
@@ -25,7 +31,7 @@ public class Tools {
                 .setTitle(title)
                 .setDescription(String.format("**%s**", SterilizeMessage(message)));
 
-            event.getChannel().sendMessage(builder.build()).queue();
+            event.getChannel().sendMessageEmbeds(builder.build()).queue();
         }
     }
 
@@ -40,7 +46,7 @@ public class Tools {
                 .setDescription(String.format("**%s**", SterilizeMessage(message)))
                 .setFooter(pageInfo);
 
-            event.getChannel().sendMessage(builder.build()).queue();
+            event.getChannel().sendMessageEmbeds(builder.build()).queue();
         }
     }
 
@@ -54,7 +60,7 @@ public class Tools {
 
             if(builder.build().getFooter() == null) builder.setFooter(pageInfo);
 
-            event.getChannel().sendMessage(builder.build()).queue();
+            event.getChannel().sendMessageEmbeds(builder.build()).queue();
         }
     }
 
@@ -70,18 +76,12 @@ public class Tools {
             EmbedBuilder builder = new EmbedBuilder(embed)
                     .setDescription(String.format("**%s**", SterilizeMessage(message)));
 
-            event.getChannel().sendMessage(builder.build()).queue();
+            event.getChannel().sendMessageEmbeds(builder.build()).queue();
         }
     }
 
     private static String SterilizeMessage(String message) {
-        return message.replace("([*_~`>|:<@])", "\\$1");
-    }
-
-    @CheckForNull
-    public static <T> T convertToClass(String str, TypeToken<T> type) {
-        Gson gson = new GsonBuilder().create();
-        return gson.fromJson(str, type.getType());
+        return message.replaceAll("([*_~`>|:<@])", "\\\\$1");
     }
 
     public static class Page<T> {
@@ -118,7 +118,13 @@ public class Tools {
         }
 
         public int GetMaxIndex() {
-            return data.size() / size - 1;
+            if(data.size() == 0) return -1;
+            else if(data.size() < size) return 0;
+            else {
+                int index = data.size() / size;
+                if(data.size()%size == 0) index--;
+                return index;
+            }
         }
 
         public void NextPage() {

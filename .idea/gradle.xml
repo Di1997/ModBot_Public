@@ -12,14 +12,9 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/Modules/modules.channel_toggle_module" />
+            <option value="$PROJECT_DIR$/Modules/modules.datetime" />
             <option value="$PROJECT_DIR$/Modules/modules.dice_module" />
-            <option value="$PROJECT_DIR$/Modules/modules.discord_commands" />
-            <option value="$PROJECT_DIR$/Modules/modules.dm_module" />
-            <option value="$PROJECT_DIR$/Modules/modules.first_module" />
-            <option value="$PROJECT_DIR$/Modules/modules.idk" />
             <option value="$PROJECT_DIR$/Modules/modules.leveldbreader" />
-            <option value="$PROJECT_DIR$/Modules/modules.reddit_monitoring" />
             <option value="$PROJECT_DIR$/modular_bot" />
             <option value="$PROJECT_DIR$/module_debugger" />
           </set>

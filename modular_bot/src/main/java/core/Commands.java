@@ -4,11 +4,12 @@ import classes.modules.BotModule;
 import classes.Tools;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,21 +25,21 @@ Make a nice help command
 public class Commands {
     private static final LinkedHashMap<String, Command> Commands = new LinkedHashMap<>();
 
-    public static void RegisterCommand(String name, Executable function, Boolean isDev) {
+    public static void registerCommand(String name, Executable function, Boolean isDev) {
         Commands.put(name.toLowerCase(), new Command(function, isDev));
     }
 
-    public static void RegisterCommand(String name, Executable function) {
-        RegisterCommand(name, function, false);
+    public static void registerCommand(String name, Executable function) {
+        registerCommand(name, function, false);
     }
 
-    public static Command GetCommand(String command) {
+    public static Command getCommand(String command) {
         command = command.split(" ")[0];
         return Commands.getOrDefault(command.toLowerCase(), null);
     }
 
-    public static void InitCommands() {
-        RegisterCommand("loadmodule", x -> {
+    public static void initCommands() {
+        registerCommand("loadmodule", x -> {
             if(x instanceof PrivateMessageReceivedEvent) {
                 PrivateMessageReceivedEvent event = (PrivateMessageReceivedEvent) x;
 
@@ -48,6 +49,11 @@ public class Commands {
                 String moduleName = String.join(" ", message);
 
                 if(Modules.LoadModuleByName(moduleName)) {
+                    try {
+                        Modules.GetModule(moduleName).coreReadyModule(event.getJDA());
+                    } catch (Exception e) {
+                        event.getChannel().sendMessage(String.format("Error while initializing module '%s'", moduleName)).queue();
+                    }
                     event.getChannel().sendMessage("Module loaded successfully").queue();
                 } else {
                     event.getChannel().sendMessage(String.format("Unable to find module '%s'", moduleName)).queue();
@@ -55,7 +61,7 @@ public class Commands {
             }
         }, true);
 
-        RegisterCommand("removemodule", x -> {
+        registerCommand("removemodule", x -> {
             if(x instanceof PrivateMessageReceivedEvent) {
                 PrivateMessageReceivedEvent event = (PrivateMessageReceivedEvent) x;
 
@@ -77,7 +83,7 @@ public class Commands {
             }
         }, true);
 
-        RegisterCommand("disablemodule", x -> {
+        registerCommand("disablemodule", x -> {
             if(x instanceof PrivateMessageReceivedEvent) {
                 PrivateMessageReceivedEvent event = (PrivateMessageReceivedEvent) x;
 
@@ -99,19 +105,42 @@ public class Commands {
             }
         }, true);
 
-        RegisterCommand("stop", x -> {
+        registerCommand("stop", x -> {
             if(x instanceof PrivateMessageReceivedEvent) {
                 System.exit(0);
             }
         }, true);
 
-        RegisterCommand("add", x -> {
+        registerCommand("reloadcommands", x -> {
+            if(x instanceof PrivateMessageReceivedEvent) {
+                Collection<Guild> guilds = x.getJDA().getGuilds();
+                for(Guild guild : guilds) {
+                    guild.updateCommands().queue();
+                    for(String moduleName : Modules.GetGuildModules(guild.getId())) {
+                        BotModule module = Modules.GetModule(moduleName);
+
+                        if(module.SlashCommands.size() > 0) {
+                            CommandListUpdateAction update = guild.updateCommands();
+                            for(BotModule.CommandInfo command : module.SlashCommands.values()) {
+                                update = update.addCommands(command.getCommandData());
+                            }
+
+                            update.queue();
+                        }
+                    }
+                }
+
+                ((PrivateMessageReceivedEvent) x).getChannel().sendMessage("Slash commands updated!").queue();
+            }
+        }, true);
+
+        registerCommand("add", x -> {
             if(x instanceof GuildMessageReceivedEvent) {
                 GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) x;
 
                 if(!event.getAuthor().isBot()) {
 
-                    if(!CheckPermission(event, Permission.ADMINISTRATOR))
+                    if(!checkPermission(event, Permission.ADMINISTRATOR))
                         return;
 
                     List<String> message = new LinkedList<>(Arrays.asList(event.getMessage().getContentRaw().split(" ")));
@@ -132,13 +161,13 @@ public class Commands {
             }
         });
 
-        RegisterCommand("remove", x -> {
+        registerCommand("remove", x -> {
             if(x instanceof GuildMessageReceivedEvent) {
                 GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) x;
 
                 if(!event.getAuthor().isBot()) {
 
-                    if(!CheckPermission(event, Permission.ADMINISTRATOR))
+                    if(!checkPermission(event, Permission.ADMINISTRATOR))
                         return;
 
                     List<String> message = new LinkedList<>(Arrays.asList(event.getMessage().getContentRaw().split(" ")));
@@ -157,16 +186,16 @@ public class Commands {
             }
         });
 
-        RegisterCommand("modules", x -> {
+        registerCommand("modules", x -> {
             if(x instanceof GuildMessageReceivedEvent) {
                 GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) x;
 
                 if(!event.getAuthor().isBot()) {
 
-                    if(!CheckPermission(event, Permission.ADMINISTRATOR))
+                    if(!checkPermission(event, Permission.ADMINISTRATOR))
                         return;
 
-                    String message = ParsePrefix(event);
+                    String message = parsePrefix(event);
                     if(message == null) return;
 
                     StringJoiner builder = new StringJoiner("\n");
@@ -208,22 +237,22 @@ public class Commands {
                     if (list.length() < 2000) {
                         EmbedBuilder embed = new EmbedBuilder().setTitle("Module list")
                                 .setDescription(list)
-                                .setFooter(String.format("Page %s out of %s (Use [module <page>] to select page)", index + 1, page.GetMaxIndex() + 1))
+                                .setFooter(String.format("Page %s out of %s (Use [module <page>] to select page)", index + 1, page.GetMaxIndex()+1))
                                 .setColor(event.getGuild().getSelfMember().getColor());
 
-                        event.getChannel().sendMessage(embed.build()).queue();
+                        event.getChannel().sendMessageEmbeds(embed.build()).queue();
                     }
                 }
             }
         });
 
-        RegisterCommand("prefix", x -> {
+        registerCommand("prefix", x -> {
             if(x instanceof GuildMessageReceivedEvent) {
                 GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) x;
 
                 if(!event.getAuthor().isBot()) {
 
-                    if(!CheckPermission(event, Permission.ADMINISTRATOR))
+                    if(!checkPermission(event, Permission.ADMINISTRATOR))
                         return;
 
                     List<String> message = new LinkedList<>(Arrays.asList(event.getMessage().getContentRaw().split(" ")));
@@ -241,13 +270,13 @@ public class Commands {
             }
         });
 
-        RegisterCommand("register", x -> {
+        registerCommand("register", x -> {
             if(x instanceof GuildMessageReceivedEvent) {
                 GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) x;
 
                 if(!event.getAuthor().isBot()) {
 
-                    if(!CheckPermission(event, Permission.ADMINISTRATOR))
+                    if(!checkPermission(event, Permission.ADMINISTRATOR))
                         return;
 
                     if(Modules.InitGuild(event)) {
@@ -259,7 +288,7 @@ public class Commands {
             }
         });
 
-        RegisterCommand("help", x -> {
+        registerCommand("help", x -> {
             if(x instanceof GuildMessageReceivedEvent) {
                 GuildMessageReceivedEvent event = (GuildMessageReceivedEvent) x;
 
@@ -278,7 +307,7 @@ public class Commands {
         });
     }
 
-    public static String ParsePrefix(GuildMessageReceivedEvent event) {
+    public static String parsePrefix(GuildMessageReceivedEvent event) {
         String prefix = Modules.GetGuildPrefix(event.getGuild().getId());
 
         if(prefix == null) prefix = Modules.DEFAULT_PREFIX;
@@ -293,7 +322,7 @@ public class Commands {
         return "";
     }
 
-    private static Boolean CheckPermission(GuildMessageReceivedEvent event, Permission... permissions) {
+    private static Boolean checkPermission(GuildMessageReceivedEvent event, Permission... permissions) {
         Member member = event.getMember();
         return member != null && (member.hasPermission(permissions) || BotMain.GetDevIDs().contains(member.getId()));
     }

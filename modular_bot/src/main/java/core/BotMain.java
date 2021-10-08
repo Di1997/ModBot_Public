@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.events.message.priv.GenericPrivateMessageEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,8 +28,10 @@ import java.util.stream.Collectors;
 public class BotMain extends ListenerAdapter {
 
     private static Collection<String> DevIDs;
-
     public static Collection<String> GetDevIDs() { return DevIDs; }
+    public static net.dv8tion.jda.api.JDA JDA;
+
+    private static String Bot_ID = BotTokens.OLD_BOT;
 
     //TODO: Add caching system to improve work speed with database
 
@@ -60,7 +63,7 @@ public class BotMain extends ListenerAdapter {
         }
 
         try {
-            JDABuilder builder = JDABuilder.createDefault(BotTokens.OLD_BOT,
+            JDABuilder builder = JDABuilder.createDefault(Bot_ID,
                     EnumSet.allOf(GatewayIntent.class));
             builder.setChunkingFilter(ChunkingFilter.ALL);
             builder.addEventListeners(new BotMain());
@@ -69,7 +72,7 @@ public class BotMain extends ListenerAdapter {
             System.out.println("Couldn't log in!");
         }
 
-        Commands.InitCommands();
+        Commands.initCommands();
     }
 
     @Override
@@ -79,10 +82,10 @@ public class BotMain extends ListenerAdapter {
             if(event instanceof GuildMessageReceivedEvent) {
                 GuildMessageReceivedEvent guildEvent = (GuildMessageReceivedEvent) event;
 
-                String pureMessage = Commands.ParsePrefix(guildEvent);
+                String pureMessage = Commands.parsePrefix(guildEvent);
 
                 if(!pureMessage.equals("")) {
-                    Command command = Commands.GetCommand(pureMessage);
+                    Command command = Commands.getCommand(pureMessage);
 
                     if (command != null) {
                         command.Execute(guildEvent);
@@ -97,7 +100,7 @@ public class BotMain extends ListenerAdapter {
                     new Thread(() -> {
                         BotModule botModule = Modules.GetModule(module);
                         if (botModule != null) {
-                            botModule.CoreProcess(event);
+                            botModule.coreProcess(event);
                         }
                     }).start();
                 }
@@ -134,7 +137,7 @@ public class BotMain extends ListenerAdapter {
                             BotModule botModule = Modules.GetModule(module);
 
                             if (botModule != null && botModule.AllowedEvents.contains(event.getClass()))
-                                botModule.CoreProcess(event);
+                                botModule.coreProcess(event);
                         } catch (Exception e) {
                             System.out.println(module);
                         }
@@ -146,10 +149,23 @@ public class BotMain extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-        event.getJDA().retrieveApplicationInfo().queue(applicationInfo -> {
-            if(applicationInfo.getTeam() != null)
-                DevIDs = applicationInfo.getTeam().getMembers().stream().map(teamMember -> teamMember.getUser().getId()).collect(Collectors.toList());
-        });
+        new Thread(() -> {
+            JDA = event.getJDA();
+            RestAction.setDefaultFailure(BotModule::staticPrintException);
+
+            event.getJDA().retrieveApplicationInfo().queue(applicationInfo -> {
+                if (applicationInfo.getTeam() != null)
+                    DevIDs = applicationInfo.getTeam().getMembers().stream().map(teamMember -> teamMember.getUser().getId()).collect(Collectors.toList());
+            });
+
+            for (BotModule module : Modules.loaded_modules.values()) {
+                try {
+                    module.coreReadyModule(JDA);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -158,7 +174,7 @@ public class BotMain extends ListenerAdapter {
             PrivateMessageReceivedEvent innerEvent = (PrivateMessageReceivedEvent) event;
 
             String message = innerEvent.getMessage().getContentRaw();
-            Command command = Commands.GetCommand(message);
+            Command command = Commands.getCommand(message);
 
             if(command != null) {
                 if (command.IsDev) {
@@ -182,7 +198,7 @@ public class BotMain extends ListenerAdapter {
                         BotModule botModule = Modules.GetModule(module);
 
                         if(botModule.AllowedEvents.contains(event.getClass()))
-                            botModule.CoreProcess(event);
+                            botModule.coreProcess(event);
                     }).start();
                 }
             }

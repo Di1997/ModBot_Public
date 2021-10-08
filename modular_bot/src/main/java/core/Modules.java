@@ -33,7 +33,6 @@ public class Modules {
         try {
             String main_path = new File(BotMain.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath();
             modules_folder = Paths.get(main_path, "modules").toString();
-
             db = new Database(Paths.get(main_path, Constants.Module.DATABASE_FOLDER, "core", "guilds").toFile());
         } catch (Exception e) {
             System.out.println("Unable to initiate modules");
@@ -54,27 +53,37 @@ public class Modules {
                     try {
                         String className = je.getName().replaceFirst("\\.class$", "").replace('/', '.');
                         Class<?> c = cl.loadClass(className);
-
                         if (BotModule.class.isAssignableFrom(c)) {
                             @SuppressWarnings("unchecked")
                             Class<? extends BotModule> cls = (Class<? extends BotModule>) cl.loadClass(className);
                             BotModule module = cls.getDeclaredConstructor().newInstance();
                             String path = new File(BotMain.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getPath();
                             String moduleName = jar.getName().substring(0, jar.getName().lastIndexOf('.'));
-                            module.init(path, moduleName);
-
-                            String error = VerifyModule(module);
-
-                            if(error == null) {
-                                loaded_modules.put(moduleName, module);
-                                name_module_map.put(module.Name, moduleName);
-                                System.out.printf("Loaded module: %s%n", module.Name);
-                            } else {
-                                System.out.printf((error) + "%n", jarFile.getName(), module.Name);
+                            BotModule oldModule = null;
+                            if(loaded_modules.containsKey(moduleName)) {
+                                oldModule = loaded_modules.get(moduleName);
+                                oldModule.coreDeInit();
+                            }
+                            try {
+                                module.init(path, moduleName);
+                                String error = VerifyModule(module);
+                                if (error == null) {
+                                    loaded_modules.put(moduleName, module);
+                                    name_module_map.put(module.Name, moduleName);
+                                    System.out.printf("Loaded module: %s%n", module.Name);
+                                } else {
+                                    if (oldModule != null) oldModule.init(path, moduleName);
+                                    System.out.printf((error) + "%n", jarFile.getName(), module.Name);
+                                }
+                            } catch (Exception ex) {
+                                if (oldModule != null) oldModule.init(path, moduleName);
+                                System.out.printf("Error while initializing module %s%n", jarFile.getName());
+                                ex.printStackTrace();
                             }
                         }
                     } catch (Throwable ex) {
                         System.out.printf("Error while loading module %s%n", jarFile.getName());
+                        ex.printStackTrace();
                     }
                 }
             }
@@ -82,6 +91,7 @@ public class Modules {
             cl.close();
         } catch (Exception e) {
             System.out.printf("Error opening file: %s%n", jar.getName());
+            e.printStackTrace();
         }
     }
 
@@ -95,7 +105,7 @@ public class Modules {
         } else return false;
     }
 
-    static boolean DisableModuleByName(String name) throws IOException {
+    static boolean DisableModuleByName(String name) throws Exception {
         BotModule module = loaded_modules.getOrDefault(name_module_map.get(name), null);
 
         if(module == null) {
@@ -105,7 +115,7 @@ public class Modules {
 
         if(module == null) return false;
 
-        module.releaseDatabases();
+        module.coreDeInit();
 
         loaded_modules.remove(name);
 
@@ -265,7 +275,7 @@ public class Modules {
     static void ReleaseModules() {
         for (BotModule module:loaded_modules.values()) {
             try {
-                module.releaseDatabases();
+                module.coreDeInit();
             } catch (Exception e) {
                 System.out.printf("Couldn't release module %s%n", module.Name);
             }
